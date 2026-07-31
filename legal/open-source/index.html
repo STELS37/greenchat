@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GreenChat — лицензии и исходный код</title>
+  <style>
+    :root { color-scheme: light dark; font-family: system-ui, sans-serif; }
+    body { max-width: 780px; margin: 0 auto; padding: 24px; line-height: 1.55; }
+    h1, h2 { line-height: 1.2; }
+    .notice { padding: 16px; border: 1px solid currentColor; border-radius: 12px; }
+    a { overflow-wrap: anywhere; }
+    code { font-size: .9em; }
+  </style>
+</head>
+<body>
+  <h1>Лицензии и исходный код GreenChat</h1>
+  <section class="notice">
+    <p><strong>GreenChat © 2026 участники проекта GreenChat.</strong></p>
+    <p>GreenChat распространяется по GNU Affero General Public License version 3 или более поздней версии.</p>
+    <p>Android-сборка может содержать <code>sing-box experimental/libbox</code>, распространяемый по GNU General Public License version 3 или более поздней версии.</p>
+    <p><strong>No warranty:</strong> программа предоставляется без каких-либо гарантий в пределах, разрешённых законом.</p>
+  </section>
+
+  <h2>Тексты лицензий и уведомления</h2>
+  <ul>
+    <li><a href="greenchat-AGPL-3.0.txt">GNU AGPLv3+ для GreenChat</a></li>
+    <li><a href="sing-box-GPL-3.0-or-later.txt">GNU GPLv3+ для sing-box/libbox</a></li>
+    <li><a href="sing-box-NOTICE.txt">Уведомление sing-box/libbox</a></li>
+  </ul>
+
+  <h2>Corresponding Source</h2>
+  <p>Для Android APK с встроенным GPL-компонентом соответствующий машиночитаемый исходный код публикуется рядом с APK, бесплатно и с эквивалентным доступом.</p>
+  <p id="source-status">Проверка актуального каталога релиза…</p>
+  <p><a id="source-link" hidden download>Скачать соответствующий исходный код</a></p>
+
+  <script type="module">
+    const status = document.querySelector("#source-status");
+    const link = document.querySelector("#source-link");
+    try {
+      const response = await fetch("/downloads.json", { cache: "no-store" });
+      if (!response.ok) throw new Error("catalog unavailable");
+      const catalog = await response.json();
+      const android = catalog?.platforms?.android;
+      const supplemental = Array.isArray(catalog?.supplemental_artifacts)
+        ? catalog.supplemental_artifacts
+        : [];
+      const source = supplemental.find((row) =>
+        row?.kind === "corresponding_source"
+        && row?.for_artifact === android?.artifact_filename
+      );
+      if (source && typeof source.url === "string" && source.url.startsWith("/")) {
+        link.href = source.url;
+        link.hidden = false;
+        status.textContent = `Исходный код для версии ${catalog.current_version}: ${source.artifact_filename} (SHA-256: ${source.sha256}).`;
+      } else if (android?.contains_gpl_engine === true) {
+        status.textContent = "Каталог релиза не содержит обязательную ссылку на Corresponding Source. Не устанавливайте этот APK и сообщите в поддержку.";
+      } else {
+        status.textContent = "Текущий опубликованный Android APK не объявляет встроенный GPL engine. Для релиза с engine ссылка появится здесь автоматически.";
+      }
+    } catch {
+      status.textContent = "Каталог релиза временно недоступен. Повторите попытку позже.";
+    }
+  </script>
+</body>
+</html>
